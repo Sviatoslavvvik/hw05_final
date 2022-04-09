@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %} Записи сообщества {{ group }} {% endblock %}  
+{% block content %}
+  <div class="container py-5">  
+    <h1>Записи сообщества: {{ group }}</h1>
+    <p>
+      {{ group.description|linebreaks }}
+    </p>
+    
+    {% for post in page_obj %}
+      {% with AUTHOR_NAME_SHOW=True PRINT_LINK=True DEATAILED_INFO=True %}  
+        {% include 'includes/post_card.html' %}
+      {% endwith %}  
+      
+    {% empty %}
+        <p>No_data</p>
+    {% endfor %} 
+  {% include 'posts/includes/paginator.html' %}
+  </div>  
+{% endblock %}
+
+          

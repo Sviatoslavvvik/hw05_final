@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %} Подписки на авторов {% endblock %}
+
+{% block content %}
+<div class="container">
+  {% include 'posts/includes/switcher.html' %}        
+  <h1>Подписки на авторов</h1>
+  
+
+    {% for post in page_obj %}
+      {% with AUTHOR_NAME_SHOW=True PRINT_LINK=True  DEATAILED_INFO=True %}
+        {% include 'includes/post_card.html' %}
+      {% endwith %}
+  
+    {% empty %}
+      <p>No_data</p>
+    {% endfor %}
+
+  {% include 'posts/includes/paginator.html' %} 
+{% endblock %}
