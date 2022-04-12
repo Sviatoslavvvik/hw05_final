@@ -1,10 +1,10 @@
+from http import HTTPStatus
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
 
 from ..models import Group, Post
-
-from http import HTTPStatus
 
 
 User = get_user_model()
@@ -53,13 +53,13 @@ class PostURLTests(TestCase):
             with self.subTest(url=url):
                 response = PostURLTests.guest_client.get(url)
                 self.assertEqual(
-                    response.reason_phrase,
-                    HTTPStatus.FOUND.phrase,
+                    response.status_code,
+                    HTTPStatus.FOUND,
                     'Код ответа не 302'
                 )
                 self.assertRedirects(
                     response,
-                    '/auth/login/?next=' + url,
+                    f'/auth/login/?next={url}',
                 )
 
     def test_access_for_urls_defined_user(self):
@@ -124,7 +124,9 @@ class PostURLTests(TestCase):
             )
         )
 
-    def test_access_to_comment_for_authorized_user(self):
+    def test_access_to_comment_for_guest_user(self):
+        """Провекра url комментирования для незарегистрированного
+        пользователя"""
         url = f'/posts/{PostURLTests.post.pk}/comment/'
         response = PostURLTests.guest_client.get(url)
         self.assertEqual(
@@ -132,6 +134,12 @@ class PostURLTests(TestCase):
             HTTPStatus.FOUND,
             'Код ответа не 302'
         )
+
+    def test_access_to_comment_for_authprized_user(self):
+        """Проверка url комментирования для зарегистрованного
+        пользователя"""
+
+        url = f'/posts/{PostURLTests.post.pk}/comment/'
         another_response = PostURLTests.authorized_client.get(url)
 
         self.assertEqual(

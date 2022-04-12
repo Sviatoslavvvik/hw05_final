@@ -1,12 +1,12 @@
+import shutil
+import tempfile
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-
-import shutil
-import tempfile
-
+from django.core.cache import cache
 
 from ..models import Group, Post, Comment, Follow
 from ..forms import PostForm, CommentForm
@@ -222,6 +222,9 @@ class PostViewTests(TestCase):
                 'posts:post_detail',
                 kwargs={'post_id': PostViewTests.some_post.pk}
             ))
+
+        response_form = response.context.get('form')
+        self.assertIsInstance(response_form, CommentForm)
         self.assertEqual(response.context['post'], PostViewTests.some_post)
         self.assertEqual(response.context['comments'].last(), comment)
 
@@ -292,28 +295,44 @@ class PostViewTests(TestCase):
             response_group_2.context.get('page_obj').object_list
         )
 
-    def test_add_comment_contains_comment_form(self):
-        """Проверка, что post_detail содержит форму CommentForm"""
-        response = PostViewTests.authorized_client.get(
-            reverse(
-                'posts:post_detail',
-                kwargs={'post_id': PostViewTests.some_post.pk}
-            ))
-        response_form = response.context.get('form')
-        self.assertIsInstance(response_form, CommentForm)
-
     def test_index_page_cach(self):
         """Проверяем кэширование главной страницы"""
         response = self.authorized_client.get(
             reverse('posts:all posts')
         )
+
         cached = response.content
         self.some_post.delete()
+
         upd_response = self.authorized_client.get(
             reverse('posts:all posts')
         )
         cached_again = upd_response.content
         self.assertEqual(cached, cached_again, 'Страница не кэшируется')
+
+    def test_cache_removed_after_delete(self):
+        """Проверка, что пост пропадает после
+        принудительной очистки кэша"""
+        response = self.authorized_client.get(
+            reverse('posts:all posts')
+        )
+        content_before_delete = response.context.get('page_obj').object_list[0]
+
+        self.some_post.delete()
+        cache.delete('index_page')
+
+        response_after_cache_delete = self.authorized_client.get(
+            reverse('posts:all posts')
+        )
+
+        content_after_delete = response_after_cache_delete.context.get(
+            'page_obj'
+        ).object_list[0]
+
+        self.assertNotEqual(
+            content_before_delete,
+            content_after_delete,
+        )
 
     def test_following(self):
         """Проверка подписки/отписки авторизованного пользователя"""
@@ -332,7 +351,6 @@ class PostViewTests(TestCase):
         subs_data = {
             'author': self.user,
             'user': another_user,
-
         }
         for field, value in subs_data.items():
             with self.subTest(field=field):

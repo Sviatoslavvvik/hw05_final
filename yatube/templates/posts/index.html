@@ -4,10 +4,12 @@
 
 {% block content %}
 <div class="container">        
-  {% include 'posts/includes/switcher.html' %}
-  <h1>Последние обновления на сайте</h1>
+  {%with index=True%}
+    {% include 'posts/includes/switcher.html'%}
+    <h1>Последние обновления на сайте</h1>
+  {%endwith%}
   
-  {% cache 20 index_page %}
+{% cache 20 index_page request.user.username %}
     {% for post in page_obj %}
       {% with AUTHOR_NAME_SHOW=True PRINT_LINK=True  DEATAILED_INFO=True %}
         {% include 'includes/post_card.html' %}
@@ -16,7 +18,7 @@
     {% empty %}
       <p>No_data</p>
     {% endfor %}
-  {% endcache %}
+{% endcache %}
   {% include 'posts/includes/paginator.html' %} 
 {% endblock %}
        

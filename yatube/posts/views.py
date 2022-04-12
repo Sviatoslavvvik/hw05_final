@@ -47,11 +47,10 @@ def profile(request, username):
     page_obj = paginator_func(some_query=post_list,
                               request=request,)
 
-    if request.user.is_authenticated:
-        following = Follow.objects.filter(
+    if request.user.is_authenticated and Follow.objects.filter(
             user=request.user,
-            author=author
-        ).exists()
+            author=author).exists():
+        following = True
     else:
         following = False
 
@@ -65,14 +64,7 @@ def post_detail(request, post_id):
     template = 'posts/post_detail.html'
     post = get_object_or_404(Post.objects.select_related('author'), pk=post_id)
     comments = post.comments.all()
-    form = CommentForm(
-        request.POST or None,
-    )
-    if form.is_valid():
-        comment = form.save(commit=False)
-        comment.author = request.user
-        comment.save()
-        return redirect('posts:post_detail', post_id)
+    form = CommentForm()
     context = {'post': post,
                'comments': comments,
                'form': form,
@@ -144,10 +136,9 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
-    is_exist = author.following.filter(user=request.user).exists()
 
-    if request.user.username != username and not is_exist:
-        Follow.objects.create(
+    if request.user.username != username:
+        Follow.objects.get_or_create(
             user=request.user,
             author=author
         )
@@ -163,8 +154,7 @@ def profile_unfollow(request, username):
 
     subscription = author.following.filter(user=request.user)
 
-    if subscription:
-        subscription.delete()
+    subscription.delete()
     return redirect(
         'posts:profile',
         author
