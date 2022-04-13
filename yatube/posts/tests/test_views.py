@@ -316,7 +316,7 @@ class PostViewTests(TestCase):
         response = self.authorized_client.get(
             reverse('posts:all posts')
         )
-        content_before_delete = response.context.get('page_obj').object_list[0]
+        content_before_delete = response.context.get('page_obj').object_list
 
         self.some_post.delete()
         cache.delete('index_page')
@@ -327,7 +327,7 @@ class PostViewTests(TestCase):
 
         content_after_delete = response_after_cache_delete.context.get(
             'page_obj'
-        ).object_list[0]
+        ).object_list
 
         self.assertNotEqual(
             content_before_delete,
