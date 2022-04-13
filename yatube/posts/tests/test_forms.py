@@ -425,7 +425,7 @@ class CommentFormTests(TestCase):
         ).last()
         self.assertEqual(
             comment.text,
-            'тестовый коммент'
+            'Тестовый коммент'
         )
 
     def test_anonym_not_access_to_comment(self):
