@@ -3,13 +3,13 @@
 {% block title %} Последние обновления на сайте {% endblock %}
 
 {% block content %}
-<div class="container">        
-  {%with index=True%}
-    {% include 'posts/includes/switcher.html'%}
-    <h1>Последние обновления на сайте</h1>
-  {%endwith%}
+  <div class="container">        
+    {%with index=True%}
+      {% include 'posts/includes/switcher.html'%}
+      <h1>Последние обновления на сайте</h1>
+    {%endwith%}
   
-{% cache 20 index_page request.user.username %}
+  {% cache 20 index_page request.user.username page_obj.number %}
     {% for post in page_obj %}
       {% with AUTHOR_NAME_SHOW=True PRINT_LINK=True  DEATAILED_INFO=True %}
         {% include 'includes/post_card.html' %}

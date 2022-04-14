@@ -222,10 +222,13 @@ class PostViewTests(TestCase):
                 'posts:post_detail',
                 kwargs={'post_id': PostViewTests.some_post.pk}
             ))
-
+        comments_count = Comment.objects.filter(
+            post=PostViewTests.some_post
+        ).count()
         response_form = response.context.get('form')
         self.assertIsInstance(response_form, CommentForm)
         self.assertEqual(response.context['post'], PostViewTests.some_post)
+        self.assertEqual(response.context['comments'].count(), comments_count)
         self.assertEqual(response.context['comments'].last(), comment)
 
     def test_post_edit_contains_post_edit_form(self):
@@ -335,7 +338,7 @@ class PostViewTests(TestCase):
         )
 
     def test_following(self):
-        """Проверка подписки/отписки авторизованного пользователя"""
+        """Проверка подписки авторизованного пользователя"""
         another_user = User.objects.create_user(username='new_user')
         another_authorized_client = Client()
         another_authorized_client.force_login(another_user)
@@ -359,6 +362,17 @@ class PostViewTests(TestCase):
                     value
                 )
 
+    def test_unfollowing(self):
+        """Проверка отписки авторизованного пользователя"""
+        another_user = User.objects.create_user(username='new_user')
+        another_authorized_client = Client()
+        another_authorized_client.force_login(another_user)
+
+        another_authorized_client.get(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': self.user.username},
+            ))
         another_authorized_client.get(
             reverse(
                 'posts:profile_unfollow',

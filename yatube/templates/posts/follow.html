@@ -3,11 +3,11 @@
 {% block title %} Подписки на авторов {% endblock %}
 
 {% block content %}
-<div class="container">
-  {%with follow=True%}
-    {% include 'posts/includes/switcher.html' %}        
-    <h1>Подписки на авторов</h1>
-  {%endwith%} 
+  <div class="container">
+    {%with follow=True%}
+      {% include 'posts/includes/switcher.html' %}        
+      <h1>Подписки на авторов</h1>
+    {%endwith%} 
     {% for post in page_obj %}
       {% with AUTHOR_NAME_SHOW=True PRINT_LINK=True  DEATAILED_INFO=True %}
         {% include 'includes/post_card.html' %}
